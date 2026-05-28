@@ -1,0 +1,106 @@
+---
+title: "Understanding a Basic Shiny Application"
+author: "Data Analytics Team"
+date: "`r Sys.Date()`"
+output: html_document
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(shiny)
+```
+
+## Introduction
+This document explains the structural architecture and components of a basic **R Shiny** web application. Shiny applications allow data analysts to turn R code into interactive web pages without needing to write HTML, CSS, or JavaScript.
+
+---
+
+## 1. The Live Interactive Application
+Below is the running application. You can move the slider to see how the histogram dynamically changes its bins in real-time.
+
+```{r application-demo, echo=FALSE}
+# 1. User Interface Layout
+ui_demo <- fluidPage(
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput(
+        inputId = "bins",
+        label = "Number of bins:",
+        min = 1,
+        max = 50,
+        value = 30
+      )
+    ),
+    mainPanel(
+      plotOutput(outputId = "distPlot")
+    )
+  )
+)
+
+# 2. Server Processing Logic
+server_demo <- function(input, output) {
+  output$distPlot <- renderPlot({
+    x    <- faithful$waiting
+    bins <- seq(min(x), max(x), length.out = input$bins + 1)
+    
+    hist(
+      x, 
+      breaks = bins, 
+      col = "#75AADB", 
+      border = "white",
+      xlab = "Waiting time to next eruption (in mins)",
+      main = "Histogram of Waiting Times"
+    )
+  })
+}
+
+# Run the app locally within the document
+shinyApp(ui = ui_demo, server = server_demo, options = list(height = 400))
+```
+
+---
+
+## 2. Core Architecture
+A standard Shiny application relies on a **Client-Server** architecture split into two core script elements:
+
+1. **The User Interface (UI):** The frontend web page that controls visual formatting, text headers, and input controls.
+2. **The Server:** The backend execution system that processes calculations, filters data structures, and renders graphics using R.
+
+Communication flows between these elements instantly via **Reactivity**. When an input value changes on the UI layout, the backend server updates its specific dependencies automatically.
+
+---
+
+## 3. Code Structural Breakdown
+
+### The Frontend (UI Elements)
+```r
+ui <- fluidPage(
+  titlePanel("My First Shiny App"),
+  sidebarLayout(
+    sidebarPanel(
+      sliderInput(inputId = "bins", label = "Number of bins:", min = 1, max = 50, value = 30)
+    ),
+    mainPanel(
+      plotOutput(outputId = "distPlot")
+    )
+  )
+)
+```
+* **`fluidPage()`**: Sets up a responsive grid container that stretches or shrinks with the user's browser window size.
+* **`sidebarLayout()`**: Formats the page layout into a 1/3-width left-hand input sidebar and a 2/3-width right-hand main panel.
+* **`sliderInput()`**: Generates an HTML slider bar. The variable `inputId = "bins"` establishes the backend bridge variable.
+* **`plotOutput()`**: reserves a visual grid coordinate on the front page named `"distPlot"` to capture graphics rendered by the backend.
+
+### The Backend (Server Elements)
+```r
+server <- function(input, output) {
+  output\$distPlot <- renderPlot({
+    x    <- faithful\$waiting
+    bins <- seq(min(x), max(x), length.out = input\$bins + 1)
+    hist(x, breaks = bins, col = "#75AADB", border = "white")
+  })
+}
+```
+* **`input` & `output`**: Core list arguments processing incoming client data (`input$bins`) and returning calculated graphic parameters (`output$distPlot`).
+* **`renderPlot()`**: A reactive calculation wrapper. It sets up an active listener. If `input$bins` changes, the script block inside the curly brackets `{}` triggers a complete visual recalculation.
