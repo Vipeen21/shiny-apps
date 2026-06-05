@@ -1,4 +1,4 @@
-
+![R Shiny](https://img.shields.io/badge/R_Shiny-276DC3?style=for-the-badge&logo=r&logoColor=white)
 
 # Understanding a Basic Shiny Application
 
